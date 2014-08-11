@@ -20,6 +20,7 @@ define( [ "module", "vwf/view", "jquery", "vwf/model/blockly/JS-Interpreter/acor
 
     var createBlocklyDivs = true;
     var blocksInWorkspace = {};
+    var previousBlocksInWorkspace = {};
     var handleChangedEvents = true;
 
     return view.load( module, {
@@ -119,7 +120,7 @@ define( [ "module", "vwf/view", "jquery", "vwf/model/blockly/JS-Interpreter/acor
                             for ( i = 0; i < blocks.length; i++ ) {
                                 block = blocks[ i ];
                                 if ( blocksInWorkspace[ block.id ] === undefined ) {
-                                    blocksInWorkspace[ block.id ] = { "id": block.id, "type": block.type }; 
+                                    blocksInWorkspace[ block.id ] = { "id": block.id, "type": block.type };
                                     self.kernel.fireEvent( self.state.blockly.node.ID, "blocklyBlockAdded", [ block.id, block.type ] );   
                                 }
                             } 
@@ -139,7 +140,31 @@ define( [ "module", "vwf/view", "jquery", "vwf/model/blockly/JS-Interpreter/acor
                             for ( i = 0; i < blockIDsRemoved.length; i++ ) {
                                 block = blocksInWorkspace[ blockIDsRemoved[ i ] ];
                                 self.kernel.fireEvent( self.state.blockly.node.ID, "blocklyBlockRemoved", [ block.id, block.type ] );
-                                delete blocksInWorkspace[ blockIDsRemoved[ i ] ];   
+                                delete blocksInWorkspace[ blockIDsRemoved[ i ] ];
+                            }
+
+                        } else if ( blockCount == previousBlockCount ) {
+
+                            var activeBlocks = {};
+                            for ( i = 0; i < blocks.length; i++ ) {
+                                activeBlocks[ blocks[ i ].id ] = blocks[ i ];    
+                            }
+                            var blockIDsChanged = [];
+                            for ( var id in previousBlocksInWorkspace ) {
+                                if ( previousBlocksInWorkspace[ id ].inputList !== undefined ) {
+                                    if ( previousBlocksInWorkspace[ id ].inputList[ 0 ] !== undefined ) {
+                                        if ( activeBlocks[ id ].inputList[ 0 ].fieldRow[ 0 ].value_ !== previousBlocksInWorkspace[ id ].inputList[ 0 ].fieldRow[ 0 ].value_ ) {
+                                            console.log('hi');
+                                            blockIDsChanged.push( id );    
+                                        }
+                                    }
+                                }
+                               
+                            }
+                            for ( i = 0; i < blockIDsChanged.length; i++ ) {
+                                block = previousBlocksInWorkspace[ blockIDsChanged[ i ] ];
+                                previousBlocksInWorkspace[ blockIDsChanged[ i ] ] = blocks[ blockIDsChanged[ i ] ];
+                                self.kernel.fireEvent( self.state.blockly.node.ID, "blocklyBlockModified", [ block.id, block.type ] );
                             }
 
                         }
@@ -148,6 +173,9 @@ define( [ "module", "vwf/view", "jquery", "vwf/model/blockly/JS-Interpreter/acor
                         self.kernel.setProperty( self.state.blockly.node.ID, "blockly_blockCount", blockCount );
                         self.kernel.setProperty( self.state.blockly.node.ID, "blockly_topBlockCount", topBlockCount );
 
+                        for ( i = 0; i < blocks.length; i++ ) {
+                            previousBlocksInWorkspace[ blocks[ i ].id ] = blocks[ i ];    
+                        }
                         // the following code could be used to 
                         // replicate the blockly blocks in the current UI
                         //var xml = Blockly.Xml.workspaceToDom( Blockly.getMainWorkspace() );
