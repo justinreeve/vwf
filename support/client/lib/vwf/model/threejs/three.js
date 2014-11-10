@@ -18666,11 +18666,9 @@ THREE.ShaderChunk = {
 				"bool frustumTest = all( frustumTestVec );",
 
 				"if ( frustumTest ) {",
-					"vec3 l = normalize( viewMatrix * vec4( directionalLightDirection[ i ], 0.0 ) ).xyz;",
-					"float ndotl = dot( vNormal, l );",
-					"float bias = clamp( shadowBias[ i ] * tan( acos( ndotl ) ), 0.0, shadowBias[ i ] * 2.0 );",
-
-					"shadowCoord.z += bias;",
+					"vec4 l = normalize( viewMatrix * vec4( directionalLightDirection[ i ], 0.0 ) );",
+					"float ssbias = shadowBias[ i ] * tan( acos( dot( vNormal, l.xyz ) ) );",
+					"shadowCoord.z += shadowBias[ i ] + max( ssbias, shadowBias[ i ] );",
 
 					"#if defined( SHADOWMAP_TYPE_PCF )",
 
