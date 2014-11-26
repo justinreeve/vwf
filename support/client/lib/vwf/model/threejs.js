@@ -47,7 +47,14 @@
     }
     
     
-define( [ "module", "vwf/model", "vwf/utility", "vwf/utility/color", "jquery" ], function( module, model, utility, Color, $ ) {
+define( [ "module", 
+          "vwf/model", 
+          "vwf/utility", 
+          "vwf/utility/color", 
+          "jquery" 
+        ], 
+
+    function( module, model, utility, Color, $ ) {
 
     var self;
 
