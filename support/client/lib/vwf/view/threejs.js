@@ -103,14 +103,14 @@ define( [ "module",
             this.parameters = options;
 
             if ( typeof options == "object" ) {
+ 
+                this.rootSelector = options[ "application-root" ];
 
-                this.rootSelector = options["application-root"];
-
-                if("experimental-pick-interval" in options) {
-                    this.pickInterval = options["experimental-pick-interval"];
+                if ( "experimental-pick-interval" in options ) {
+                    this.pickInterval = options[ "experimental-pick-interval" ];
                 }
-                if("experimental-disable-inputs" in options) {
-                    this.disableInputs = options["experimental-disable-inputs"];
+                if ( "experimental-disable-inputs" in options ) {
+                    this.disableInputs = options[ "experimental-disable-inputs" ];
                 }
                 enableStereo = ( options.stereo !== undefined ) ? options.stereo : false;
             }
@@ -170,6 +170,19 @@ define( [ "module",
             var appID = this.kernel.application();
             if ( childID == appID ) {
                 this.state.appInitialized = true;
+
+                if ( enableStereo ) {
+                    var viewCam = this.state.cameraInUse;
+                    var sceneNode = this.state.scenes[ childID ];
+                    
+                    if ( sceneNode ) {
+                        sceneNode.stereo = {
+                            "effect": new THREE.StereoEffect( sceneNode.renderer ),
+                            "element": sceneNode.renderer.domElement,
+                            "controls": createControls( viewCam, sceneNode.renderer.domElement )
+                        }                    
+                    }
+                }
             } else {
 
                 //TODO: This is a temporary workaround until the callback functionality is implemented for 
@@ -1217,6 +1230,7 @@ define( [ "module",
             var oldMouseY = 0;
             var hovering = false;
             var view = this;
+            var viewCam;
             window.onresize = function () {
                 var origWidth = self.width;
                 var origHeight = self.height;
@@ -1236,7 +1250,7 @@ define( [ "module",
                     sceneNode.renderer.setSize( self.width, self.height, true );
                 }
 
-                var viewCam = view.state.cameraInUse;
+                viewCam = view.state.cameraInUse;
                 if ( viewCam ) {
                     viewCam.aspect = mycanvas.clientWidth / mycanvas.clientHeight;
                     viewCam.updateProjectionMatrix();
@@ -1244,19 +1258,7 @@ define( [ "module",
             }
 
             if ( detectWebGL() && getURLParameter('disableWebGL') == 'null' ){
-                
                 sceneNode.renderer = new THREE.WebGLRenderer( { canvas: mycanvas, antialias: true } );
-
-                var viewCam = view.state.cameraInUse;
-
-                if ( enableStereo ) {
-                    
-                    sceneNode.stereo = {
-                        "effect": new THREE.StereoEffect( sceneNode.renderer ),
-                        "element": sceneNode.renderer.domElement,
-                        "controls": createControls( sceneNode, viewCam, element )
-                    }
-                }
             } else {
                 sceneNode.renderer = new THREE.CanvasRenderer( { canvas: mycanvas, antialias: true } );
                 sceneNode.renderer.setSize( window.innerWidth,window.innerHeight );
