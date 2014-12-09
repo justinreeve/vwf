@@ -1225,8 +1225,12 @@
 
             var nodeIndex = 0;
 
+nodes.reverse();
+nodeIndex = nodes.length;
+
             async.forEachSeries( nodes, function( nodeComponent, each_callback_async /* ( err ) */ ) {
 
+nodeIndex--;
                 // Look up a possible annotation for this node. For backward compatibility, if the
                 // state has exactly one node and doesn't contain an annotations object, assume the
                 // node is the application.
@@ -1238,9 +1242,11 @@
                     each_callback_async( undefined );
                 } );
 
-                nodeIndex++;
+                // nodeIndex++;
 
             }, function( err ) /* async */ {
+
+nodes.reverse();
 
                 // Clear the message queue, except for reflector messages that arrived after the
                 // current action.
